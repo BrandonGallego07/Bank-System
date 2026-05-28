@@ -56,7 +56,10 @@ public class LoanController {
         return u;
     }
 
-    // Solicitar prestamo
+    private String formatMonto(double monto) {
+        return String.format("$ %,.0f COP", monto);
+    }
+
     @PostMapping("/request")
     public ResponseEntity<?> request(@RequestBody LoanRequest request, Authentication auth) {
         try {
@@ -76,9 +79,9 @@ public class LoanController {
             response.put("clienteId", result.getApplicantId());
             response.put("solicitadoPor", user.getFullName());
             response.put("tipoPrestamo", result.getLoanType());
-            response.put("montoSolicitado", result.getRequestedAmount());
+            response.put("montoSolicitado", formatMonto(result.getRequestedAmount()));
             response.put("tasaInteres", result.getInterestRate() + "%");
-            response.put("plazoMeses", result.getTermMonths());
+            response.put("plazoMeses", result.getTermMonths() + " meses");
             response.put("cuentaDestino", result.getDestinationAccountNumber());
             response.put("estado", result.getStatus());
             response.put("nota", "En espera de revision por el Analista Interno");
@@ -89,7 +92,6 @@ public class LoanController {
         }
     }
 
-    // Aprobar prestamo
     @PutMapping("/approve/{id}")
     public ResponseEntity<?> approve(@PathVariable Long id,
                                      @RequestParam double approvedAmount,
@@ -106,10 +108,10 @@ public class LoanController {
             response.put("prestamoId", id);
             response.put("clienteId", loan.getApplicantId());
             response.put("nombreCliente", cliente != null ? cliente.getFullName() : "No encontrado");
-            response.put("montoSolicitado", loan.getRequestedAmount());
-            response.put("montoAprobado", loan.getApprovedAmount());
+            response.put("montoSolicitado", formatMonto(loan.getRequestedAmount()));
+            response.put("montoAprobado", formatMonto(loan.getApprovedAmount()));
             response.put("tasaInteres", loan.getInterestRate() + "%");
-            response.put("plazoMeses", loan.getTermMonths());
+            response.put("plazoMeses", loan.getTermMonths() + " meses");
             response.put("estado", loan.getStatus());
             response.put("aprobadoPor", analista.getFullName());
             response.put("fechaAprobacion", loan.getApprovalDate());
@@ -121,7 +123,6 @@ public class LoanController {
         }
     }
 
-    // Rechazar prestamo
     @PutMapping("/reject/{id}")
     public ResponseEntity<?> reject(@PathVariable Long id, Authentication auth) {
         try {
@@ -136,7 +137,7 @@ public class LoanController {
             response.put("prestamoId", id);
             response.put("clienteId", loan.getApplicantId());
             response.put("nombreCliente", cliente != null ? cliente.getFullName() : "No encontrado");
-            response.put("montoSolicitado", loan.getRequestedAmount());
+            response.put("montoSolicitado", formatMonto(loan.getRequestedAmount()));
             response.put("estado", loan.getStatus());
             response.put("rechazadoPor", analista.getFullName());
 
@@ -146,7 +147,6 @@ public class LoanController {
         }
     }
 
-    // Desembolsar prestamo
     @PutMapping("/disburse/{id}")
     public ResponseEntity<?> disburse(@PathVariable Long id, Authentication auth) {
         try {
@@ -162,9 +162,9 @@ public class LoanController {
             response.put("prestamoId", id);
             response.put("clienteId", loan.getApplicantId());
             response.put("nombreCliente", cliente != null ? cliente.getFullName() : "No encontrado");
-            response.put("montoDesembolsado", loan.getApprovedAmount());
+            response.put("montoDesembolsado", formatMonto(loan.getApprovedAmount()));
             response.put("cuentaDestino", loan.getDestinationAccountNumber());
-            response.put("saldoActualCuenta", cuenta != null ? cuenta.getBalance() : "No disponible");
+            response.put("saldoActualCuenta", cuenta != null ? formatMonto(cuenta.getBalance()) : "No disponible");
             response.put("estado", loan.getStatus());
             response.put("desembolsadoPor", analista.getFullName());
             response.put("fechaDesembolso", loan.getDisbursementDate());
